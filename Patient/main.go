@@ -4,6 +4,7 @@ import (
 	"HospitalManagement/Patient/database"
 	"HospitalManagement/Patient/doctorList"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -69,11 +70,12 @@ func SetAppointment(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		err = doctorList.InsertAppointment(app)
+		AppointmentID, err := doctorList.InsertAppointment(app)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		w.Write([]byte(fmt.Sprintf("Appointment Created,your Appointment_id is %d", AppointmentID)))
 
 	}
 }

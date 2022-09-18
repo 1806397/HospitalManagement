@@ -30,6 +30,7 @@ func ChangeAppointment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{Message:"Appointment Changed"}`))
 	}
 }
 func main() {
