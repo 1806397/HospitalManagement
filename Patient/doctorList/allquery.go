@@ -61,13 +61,13 @@ func InsertAppointment(app Appoint) (int, error) {
 func RegistrationUser(reg Registration) error {
 	UserExist := errors.New("user already exist")
 	PasswordMismatch := errors.New("password Mismatch.Please check your password")
-	if reg.Password != reg.ConfirmPassword {
-		return PasswordMismatch
-	}
 	_, err := database.Dbconn.Exec(`INSERT INTO registration (UserID,Password) VALUES (?,?)`, reg.User_id, reg.Password)
 	if err != nil {
 		// fmt.Println("line 79")
 		return UserExist
+	}
+	if reg.Password != reg.ConfirmPassword {
+		return PasswordMismatch
 	}
 	return nil
 }

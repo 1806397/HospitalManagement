@@ -24,3 +24,6 @@ type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
+type Cancel struct {
+	Appointment_id int `json:"id"`
+}

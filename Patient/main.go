@@ -18,6 +18,11 @@ var jwtKey = []byte("secret_key")
 func DoctorList(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		err := CheckToken(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		doctorName, err := doctorList.GetDoctor()
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -31,6 +36,11 @@ func DoctorList(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application.json")
 		w.Write(doctorJSON)
 	case http.MethodPost:
+		err := CheckToken(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		var DoctorName doctorList.DoctorDB
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -60,9 +70,39 @@ func DoctorList(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+func CheckToken(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return err
+		}
+		return err
+	}
+	tokenStr := cookie.Value
+	claims := &doctorList.Claims{}
+	tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return err
+		}
+		return err
+	}
+	if !tkn.Valid {
+		return err
+	}
+	return nil
+
+}
 func SetAppointment(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
+		err := CheckToken(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		var app doctorList.Appoint
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -80,9 +120,12 @@ func SetAppointment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Write([]byte(fmt.Sprintf("Appointment Created,your Appointment_id is %d", AppointmentID)))
-
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
 }
+
 func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -103,7 +146,9 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Write([]byte(fmt.Sprintf("User with ID %s Successfully created", reg.User_id)))
-
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
 
 }
@@ -146,10 +191,13 @@ func UserLogin(w http.ResponseWriter, r *http.Request) {
 			Value:   tokenString,
 			Expires: expirationTime,
 		})
-
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
 }
-func Home(w http.ResponseWriter, r *http.Request) {
+
+/*func Home(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -175,14 +223,15 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("Welcome user,%s", claims.Username)))
-}
+	// w.Write([]byte(fmt.Sprintf("Welcome user,%s", claims.Username)))
+}*/
 func main() {
 	http.HandleFunc("/getDoctor", DoctorList)
 	http.HandleFunc("/setAppointment", SetAppointment)
 	http.HandleFunc("/registration", CreateRegistration)
 	http.HandleFunc("/login", UserLogin)
-	http.HandleFunc("/home", Home)
+
+	// http.HandleFunc("/home", Home)
 	database.SetupConnection()
 	http.ListenAndServe(":8000", nil)
 }
