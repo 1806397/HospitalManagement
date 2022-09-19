@@ -95,6 +95,36 @@ func CheckToken(w http.ResponseWriter, r *http.Request) error {
 	return nil
 
 }
+func CancelAppointment(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodDelete:
+		err := CheckToken(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		var cancel doctorList.Cancel
+		bodybytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		err = json.Unmarshal(bodybytes, &cancel)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		err = doctorList.DeleteAppointment(cancel)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Write([]byte(fmt.Sprintf("Appointment with id %d Successfully cancel", cancel.Appointment_id)))
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+}
 func SetAppointment(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -230,7 +260,7 @@ func main() {
 	http.HandleFunc("/setAppointment", SetAppointment)
 	http.HandleFunc("/registration", CreateRegistration)
 	http.HandleFunc("/login", UserLogin)
-
+	http.HandleFunc("/cancelAppointment", CancelAppointment)
 	// http.HandleFunc("/home", Home)
 	database.SetupConnection()
 	http.ListenAndServe(":8000", nil)

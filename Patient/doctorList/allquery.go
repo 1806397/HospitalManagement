@@ -71,6 +71,14 @@ func RegistrationUser(reg Registration) error {
 	}
 	return nil
 }
+func DeleteAppointment(cancel Cancel) error {
+	_, err := database.Dbconn.Exec(`DELETE FROM appointment WHERE appointment_id=?`, cancel.Appointment_id)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
 func UserLogin(log Login) error {
 	var UserLog Login
 	results := database.Dbconn.QueryRow(`SELECT * FROM registration WHERE UserID=?`, log.User_id)
