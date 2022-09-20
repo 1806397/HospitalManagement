@@ -95,66 +95,6 @@ func CheckToken(w http.ResponseWriter, r *http.Request) error {
 	return nil
 
 }
-func CancelAppointment(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodDelete:
-		err := CheckToken(w, r)
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		var cancel doctorList.Cancel
-		bodybytes, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		err = json.Unmarshal(bodybytes, &cancel)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		err = doctorList.DeleteAppointment(cancel)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		w.Write([]byte(fmt.Sprintf("Appointment with id %d Successfully cancel", cancel.Appointment_id)))
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-}
-func SetAppointment(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		err := CheckToken(w, r)
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		var app doctorList.Appoint
-		bodyBytes, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		err = json.Unmarshal(bodyBytes, &app)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		AppointmentID, err := doctorList.InsertAppointment(app)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		w.Write([]byte(fmt.Sprintf("Appointment Created,your Appointment_id is %d", AppointmentID)))
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-}
 
 func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -257,10 +197,10 @@ func UserLogin(w http.ResponseWriter, r *http.Request) {
 }*/
 func main() {
 	http.HandleFunc("/getDoctor", DoctorList)
-	http.HandleFunc("/setAppointment", SetAppointment)
+
 	http.HandleFunc("/registration", CreateRegistration)
 	http.HandleFunc("/login", UserLogin)
-	http.HandleFunc("/cancelAppointment", CancelAppointment)
+
 	// http.HandleFunc("/home", Home)
 	database.SetupConnection()
 	http.ListenAndServe(":8000", nil)
