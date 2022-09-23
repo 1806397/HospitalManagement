@@ -105,6 +105,7 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		r.Body.Close()
 		err = json.Unmarshal(bodyBytes, &reg)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -127,6 +128,7 @@ func UserLogin(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		var login doctorList.Login
 		bodyBytes, err := ioutil.ReadAll(r.Body)
+		defer r.Body.Close()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
